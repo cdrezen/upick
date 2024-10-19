@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system';
 import { ThemedView } from '@/components/ThemedView';
 import Ical from './ical';
 const { StorageAccessFramework } = FileSystem;
+import * as Calendar from 'expo-calendar';
 
 function HomeScreen() 
 {
@@ -70,7 +71,7 @@ function HomeScreen()
 
   async function onSaveClick()
   {
-    await save("test.ics", "text/calendar", ical.current.export());//ics);
+    await save("test.ics", "text/calendar", ical.current.exportStr());//ics);
   }
 }
 

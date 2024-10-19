@@ -51,7 +51,7 @@ class Ical
             this.components.filter(e => new ICAL.Event(e).summary.includes(name) == false);
     }
 
-    public export(): string
+    public exportStr(): string
     {
         if(this.components == undefined || this.vcalendar == undefined) return "";
 
@@ -61,6 +61,24 @@ class Ical
         });
 
         return ICAL.stringify(this.vcalendar.jCal);
+    }
+
+    public exportOs() : {title:string, desc:string, dateStart:Date, dateEnd:Date, location:string}[] | undefined
+    {
+        if(this.components == undefined || this.vcalendar == undefined) return undefined;
+
+        let events : {title:string, desc:string, dateStart:Date, dateEnd:Date, location:string}[] = [];
+        this.components.forEach(element => {
+            const vevent = new ICAL.Event(element);
+            const title = getEventTitle(vevent.summary);
+            const desc = vevent.description;
+            const dateStart = vevent.startDate.toJSDate();
+            const dateEnd = vevent.endDate.toJSDate();
+            const location = vevent.location;
+            events.push({title, desc, dateStart, dateEnd, location})
+        });
+
+        return events;
     }
   }
   export default Ical
