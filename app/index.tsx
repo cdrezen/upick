@@ -1,5 +1,5 @@
 import React, { ElementType, useEffect, useRef, useState } from 'react';
-import { Text, View, StyleSheet, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, ScrollView, Platform } from 'react-native';
 import { Button, PaperProvider, TextInput, Chip } from 'react-native-paper';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import ICAL from "ical.js";
@@ -7,7 +7,8 @@ import * as FileSystem from 'expo-file-system';
 import { ThemedView } from '@/components/ThemedView';
 import Ical from './ical';
 const { StorageAccessFramework } = FileSystem;
-import * as Calendar from 'expo-calendar';
+import Calendar from './calendar';//
+
 
 function HomeScreen() 
 {
@@ -18,6 +19,7 @@ function HomeScreen()
   //   console.log(chips);
   // }, [chips]);
   const ical = useRef(new Ical());
+  const calendar = useRef(new Calendar('Upick Calendar'))
 
   return (
     <ThemedView style={styles.container}>
@@ -38,7 +40,13 @@ function HomeScreen()
         id="btnSave"
         mode="contained"
         onPress={() => onSaveClick()}>
-          Exporter
+          Exporter...
+      </Button>
+      <Button
+        id="btnSync"
+        mode="contained"
+        onPress={() => onSyncClick()}>
+          Sync
       </Button>
       <ScrollView style={{width:'80%', maxHeight: "60%"}} contentContainerStyle={{ alignItems:"flex-start", justifyContent: 'space-evenly', rowGap: 7}}>
       {chips.map((chip:any) => (
@@ -72,6 +80,17 @@ function HomeScreen()
   async function onSaveClick()
   {
     await save("test.ics", "text/calendar", ical.current.exportStr());//ics);
+  }
+
+  async function onSyncClick()
+  {
+    await calendar.current.init();
+
+    const events = ical.current.exportOs();
+
+    if(!events) return;
+    
+    await calendar.current.addEvents(events);
   }
 }
 

@@ -1,5 +1,4 @@
 import ICAL from "ical.js";
-import React, { ElementType, useEffect, useState } from 'react';
 
 class Ical 
 {
@@ -63,19 +62,20 @@ class Ical
         return ICAL.stringify(this.vcalendar.jCal);
     }
 
-    public exportOs() : {title:string, desc:string, dateStart:Date, dateEnd:Date, location:string}[] | undefined
+    public exportOs() : {uid:string, title:string, notes:string, startDate:Date, endDate:Date, location:string}[] | undefined
     {
         if(this.components == undefined || this.vcalendar == undefined) return undefined;
 
-        let events : {title:string, desc:string, dateStart:Date, dateEnd:Date, location:string}[] = [];
+        let events : {uid:string, title:string, notes:string, startDate:Date, endDate:Date, location:string}[] = [];
         this.components.forEach(element => {
             const vevent = new ICAL.Event(element);
             const title = getEventTitle(vevent.summary);
             const desc = vevent.description;
-            const dateStart = vevent.startDate.toJSDate();
-            const dateEnd = vevent.endDate.toJSDate();
+            const startDate = vevent.startDate.toJSDate();
+            const endDate = vevent.endDate.toJSDate();
             const location = vevent.location;
-            events.push({title, desc, dateStart, dateEnd, location})
+            const uid = vevent.uid;
+            events.push({uid, title, notes: desc, startDate, endDate, location})
         });
 
         return events;
