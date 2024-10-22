@@ -4,15 +4,12 @@ class Ical
 {
     private vcalendar: ICAL.Component | undefined;
     private components: ICAL.Component[] | undefined;
-    
-    private _events : {id:string, name:string}[];
-    public get events() : {id:string, name:string}[] {
-        return this._events;
-    }
+
+    private blacklist: string[];
     
     constructor() 
     {
-        this._events = [];
+        this.blacklist = ["Vacances"];
     }
 
     public async parse(url:string)
@@ -23,17 +20,19 @@ class Ical
         this.vcalendar = new ICAL.Component(jcalData);
 
         this.components = this.vcalendar.getAllSubcomponents("vevent");
+        let events : {id:string, name:string}[] = [];
+
         this.components.forEach(element => {
             let vevent = new ICAL.Event(element);
             let title = getEventTitle(vevent.summary);
             let id = getEventId(vevent.description);
             console.log(title, id);
-            if(!this._events.some(e => e.name == title) && title != "Vacances"){
-                this._events.push({id: id, name: title});
+            if(!events.some(e => e.name == title) && !this.blacklist.includes(title)){
+                events.push({id: id, name: title});
             }
         });
 
-        return this._events;
+        return events;
     }
 
     public removeById(id:string)
@@ -48,6 +47,7 @@ class Ical
         if(this.components == undefined) return;
         this.components = 
             this.components.filter(e => new ICAL.Event(e).summary.includes(name) == false);
+        this.blacklist.push(name);
     }
 
     public exportStr(): string
