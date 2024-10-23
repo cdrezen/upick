@@ -4,7 +4,6 @@ class Ical
 {
     private vcalendar: ICAL.Component | undefined;
     private components: ICAL.Component[] | undefined;
-
     private blacklist: string[];
     
     constructor() 
@@ -27,8 +26,11 @@ class Ical
             let title = getEventTitle(vevent.summary);
             let id = getEventId(vevent.description);
             console.log(title, id);
-            if(!events.some(e => e.name == title) && !this.blacklist.includes(title)){
-                events.push({id: id, name: title});
+            if(!events.some(e => e.name == title) 
+                && !this.blacklist.includes(title))
+                //&& (this.components && !this.components.find(e => new ICAL.Event(e).uid == vevent.uid)))
+                {
+                    events.push({id: id, name: title});
             }
         });
 
@@ -55,9 +57,14 @@ class Ical
         if(this.components == undefined || this.vcalendar == undefined) return "";
 
         this.vcalendar.removeAllSubcomponents('vevent');
-        this.components.forEach(element => {
-            this.vcalendar?.addSubcomponent(element);
-        });
+        for(const e of this.components)
+        {
+            const title = getEventTitle(new ICAL.Event(e).summary);
+            if(!this.blacklist.includes(title))
+            {
+                this.vcalendar?.addSubcomponent(e);
+            }
+        }
 
         return ICAL.stringify(this.vcalendar.jCal);
     }
@@ -75,7 +82,9 @@ class Ical
             const endDate = vevent.endDate.toJSDate();
             const location = vevent.location;
             const uid = vevent.uid;
-            events.push({uid, title, notes: desc, startDate, endDate, location})
+
+            if(!this.blacklist.includes(title)) 
+                events.push({uid, title, notes: desc, startDate, endDate, location})
         });
 
         return events;
