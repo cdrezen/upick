@@ -49,7 +49,17 @@ class Ical
         if(this.components == undefined) return;
         this.components = 
             this.components.filter(e => new ICAL.Event(e).summary.includes(name) == false);
+    }
+
+    public addFilter(name:string)
+    {
         this.blacklist.push(name);
+        this.removeByName(name)
+    }
+
+    public removeFilter(name:string)
+    {
+        this.blacklist = this.blacklist.filter(s => s != name);
     }
 
     public exportStr(): string
