@@ -1,6 +1,6 @@
 import React, { ElementType, useEffect, useRef, useState } from 'react';
-import { Text, View, StyleSheet, ScrollView, Platform } from 'react-native';
-import { Button, PaperProvider, TextInput, Chip, Divider } from 'react-native-paper';
+import { Text, View, StyleSheet, ScrollView, Platform, Linking } from 'react-native';
+import { Button, PaperProvider, TextInput, Chip, Divider, IconButton } from 'react-native-paper';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import { ThemedView } from '@/components/ThemedView';
@@ -26,13 +26,19 @@ function HomeScreen()
 
   return (
     <ThemedView style={styles.container}>
+      <View style={styles0.container}>
       <TextInput
         id="textfieldUrl"
         label="Ical URL"
         value={urlstr}
-        style={{width:'80%'}}
         onChangeText={text => text.includes("webcal") ? setUrl(text.replace("webcal:", "https:")) : setUrl(text) }
       />
+      <IconButton
+        icon="help-circle"
+        id="btnHelp"
+        onPress={() => onHelpClick()}
+      />
+      </View>
       <View style={styles1.container}>
       <Button
         id="btnLoad"
@@ -54,7 +60,7 @@ function HomeScreen()
       </Button>
       </View>
       <Divider style={{width:'100%', margin: 6}} />
-      <ScrollView style={{width:'80%'}} contentContainerStyle={{ alignItems:"flex-start", justifyContent: 'space-evenly', rowGap: 7}}>
+      <ScrollView style={scrollstyle.style} contentContainerStyle={scrollstyle.container}>
       {chips.map((chip:any) => (
         <Chip 
           key={chip.id}
@@ -65,7 +71,7 @@ function HomeScreen()
       ))}
       </ScrollView>
       <Divider style={{width:'100%', margin: 6}} />
-      <ScrollView style={{width:'80%'}} contentContainerStyle={{ alignItems:"flex-start", justifyContent: 'space-evenly', rowGap: 7}}>
+      <ScrollView style={scrollstyle.style} contentContainerStyle={scrollstyle.container}>
       {filteringChips.map((chip:any) => (
         <Chip 
           style={{backgroundColor: "crimson"}}
@@ -83,6 +89,14 @@ function HomeScreen()
   {
     const events = await ical.current.parse(urlstr);
     setChips(events);
+  }
+
+  async function onHelpClick()
+  {
+    const url = "https://celcat.u-bordeaux.fr/ICalFeed/groups.aspx"
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) Linking.openURL(url);
+    });
   }
 
   function onChipClose(id:string, name: string)
@@ -184,7 +198,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-evenly',
-    alignItems: 'center'
+    alignItems: 'center',
+    padding:20
+  }
+});
+
+const styles0 = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    marginLeft: "18%",
+    gap: 1,
+    flexDirection: "row"
   }
 });
 
@@ -192,7 +217,17 @@ const styles1 = StyleSheet.create({
   container: {
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    gap: 7,
-    marginTop:7,
+    gap: 10,
+    margin:15,
+    flexDirection: "row"
+  }
+});
+
+const scrollstyle= StyleSheet.create({
+  style:{width:'80%', margin: 10},
+  container: {
+      alignItems:"flex-start",
+      justifyContent: 'space-evenly',
+      rowGap: 7
   }
 });

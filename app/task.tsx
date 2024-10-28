@@ -48,8 +48,8 @@ TaskManager.defineTask(UPDATE_CAL_TASK_NAME, async () => {
 });
 
 export async function registerRecurringTask() {
-    //const isRegistered = await TaskManager.isTaskRegisteredAsync(UPDATE_CAL_TASK_NAME);
-    //if(isRegistered) return;
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(UPDATE_CAL_TASK_NAME);
+    if(isRegistered) return;
 
     console.log('registrering');
 
