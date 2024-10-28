@@ -1,18 +1,34 @@
 import ICAL from "ical.js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Ical 
 {
     private vcalendar: ICAL.Component | undefined;
     private components: ICAL.Component[] | undefined;
-    private blacklist: string[];
+    public blacklist: string[];
+    private static lastUrl: string = "";
+
+    private static readonly URL_KEY = 'url';
+    private static readonly BLACKLIST_KEY = "blacklist";
+
     
     constructor() 
     {
         this.blacklist = ["Vacances"];
     }
 
-    public async parse(url:string)
+    public async parse(url:string | null)
     {
+        if(!url)
+        {
+            if(Ical.lastUrl) url = Ical.lastUrl;
+            else{
+                this.loadUrl();
+                if(Ical.lastUrl) url = Ical.lastUrl;
+                else return null;
+            }
+        }
+
         const resp = await fetch(url);
         const icalstr = await resp.text();
         const jcalData = ICAL.parse(icalstr);
@@ -33,6 +49,8 @@ class Ical
                     events.push({id: id, name: title});
             }
         });
+
+        Ical.lastUrl = url;
 
         return events;
     }
@@ -98,6 +116,47 @@ class Ical
         });
 
         return events;
+    }
+
+    public async loadBlacklist()
+    {
+        try 
+        {
+          const str = await AsyncStorage.getItem(Ical.BLACKLIST_KEY);
+          if(!str) return;
+          const list = JSON.parse(str);
+          if (list) return this.blacklist = list;
+        } 
+        catch (e) { }
+    }
+
+    public async storeBlacklist()
+    {
+        try 
+        {
+          await AsyncStorage.setItem(Ical.BLACKLIST_KEY, JSON.stringify(this.blacklist));
+        } 
+        catch (e) {}
+    }
+
+    public async loadUrl()
+    {
+        try 
+        {
+          const str = await AsyncStorage.getItem(Ical.URL_KEY);
+          if(!str) return;
+          return Ical.lastUrl = str;
+        } 
+        catch (e) { }
+    }
+
+    public async storeUrl()
+    {
+        try 
+        {
+          await AsyncStorage.setItem(Ical.URL_KEY, Ical.lastUrl);
+        } 
+        catch (e) {}
     }
   }
   export default Ical

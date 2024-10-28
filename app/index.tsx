@@ -7,19 +7,22 @@ import { ThemedView } from '@/components/ThemedView';
 import Ical from './ical';
 const { StorageAccessFramework } = FileSystem;
 import Calendar from './calendar';//
-
+import * as task from './task';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function HomeScreen() 
 {
   //const insets = useSafeAreaInsets();
   const [urlstr, setUrl] = useState('');
   const [chips, setChips]:any = useState([]);
-  const [filteringChips, setFilteringChips]:any = useState([{id:'0', name:"Vacances"}]);
-  // useEffect(() => {
-  //   console.log(chips);
-  // }, [chips]);
   const ical = useRef(new Ical());
-  const calendar = useRef(new Calendar('Upick Calendar'))
+  const calendar = useRef(new Calendar());
+  const [filteringChips, setFilteringChips]:any = useState([]);
+  useEffect(() => {
+    ical.current.loadBlacklist().then(() => { setFilteringChips(loadFilters());})
+    ical.current.loadUrl().then((url) => { if(url) setUrl(url); } )
+  }, [])
+  
 
   return (
     <ThemedView style={styles.container}>
@@ -119,6 +122,9 @@ function HomeScreen()
 
   async function onSyncClick()
   {
+    ical.current.storeBlacklist();
+    ical.current.storeUrl();
+
     await calendar.current.init();
 
     const events = ical.current.exportOs();
@@ -126,7 +132,20 @@ function HomeScreen()
     if(!events) return;
     
     await calendar.current.addEvents(events);
+
+    await task.registerRecurringTask();
   }
+
+  function loadFilters()
+  {
+    const filters = [];
+    for(let i = 0; i < ical.current.blacklist.length; i++)
+    {
+      filters.push({ id: i, name: ical.current.blacklist[i] })
+    }
+    return filters;
+  }
+
 }
 
 async function save(filename:string, mime:string, strData:string)

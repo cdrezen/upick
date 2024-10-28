@@ -4,15 +4,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Calendar
 {
-    public title : string;
-    public id : string; 
-    private static readonly ID_KEY = "calId"
+    public id : string = ''; 
+    private static readonly ID_KEY = "calId";
+    private static readonly IDMAP_KEY = "calIdMap";
+    private static readonly TITLE = "Upick Calendar";
+
     private uid_idmap = new Map<string, string>();
 
-    constructor(title: string) 
+    constructor() 
     {
-        this.title = title;
-        this.id = '';
+        
     }
 
     async init()
@@ -24,15 +25,16 @@ class Calendar
 
         if(!id) 
         {
-            this.id = await this.create(this.title);
+            this.id = await this.create(Calendar.TITLE);
         }
         else if((await ExpoCal.getCalendarsAsync(ExpoCal.EntityTypes.EVENT)).find((cal) => cal.id == id))
         {
             this.id = id;
+            await this.loadMap();
         }
         else 
         {
-            this.id = await this.create(this.title);
+            this.id = await this.create(Calendar.TITLE);
         }
     }
 
@@ -54,6 +56,31 @@ class Calendar
         } 
         catch (e) {}
     }
+
+    public async storeMap()
+    {
+        try 
+        {
+          await AsyncStorage.setItem(Calendar.IDMAP_KEY, JSON.stringify(Object.fromEntries(this.uid_idmap)));
+        } 
+        catch (e) {}
+    }
+
+    private async loadMap()
+    {
+        try 
+        {
+          const str = await AsyncStorage.getItem(Calendar.IDMAP_KEY);
+          if(!str) return;
+          const obj = JSON.parse(str);
+          // console.log(str);
+          const map = new Map<string, string>(Object.entries(obj));
+          //for (let [key, value] of map) { console.log(key, value); }
+          if (map) return this.uid_idmap = map;
+        } 
+        catch (e) { }
+    }
+
     
     private async getDefaultCalendarSource(name: string) : Promise<any> {
         if(Platform.OS === 'ios') return (await ExpoCal.getDefaultCalendarAsync()).source;
@@ -80,16 +107,22 @@ class Calendar
 
     async addEvents(events : {uid:string, title:string, notes:string, startDate:Date, endDate:Date, location:string}[])
     {
+        let count = 0;
         for(const event of events)
         {
             if(!this.uid_idmap.get(event.uid))
             {
-                const eventId = await ExpoCal.createEventAsync(this.id, event);
-                this.uid_idmap.set(event.uid, eventId);
-                console.log(eventId);
+                const sysEventId = await ExpoCal.createEventAsync(this.id, event);
+                this.uid_idmap.set(event.uid, sysEventId);
+                console.log(sysEventId + " " + event.title + " " + event.uid);
+                count++;
             }
-            else await ExpoCal.updateEventAsync(this.id, event);
+            else if(await ExpoCal.updateEventAsync(this.id, event)) count++;
         }
+
+        this.storeMap();
+
+        return count;
     }
 }
 export default Calendar
