@@ -207,7 +207,8 @@ const styles0 = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'stretch',
-    marginLeft: "18%",
+    //marginLeft: "18%",
+    width:"75%",
     gap: 1,
     flexDirection: "row"
   }

@@ -1,6 +1,7 @@
+import CustomHeaderTitle from "@/components/CustomHeaderTitle";
 import { Stack } from "expo-router";
 //import { useColorScheme } from "react-native";
-import { useTheme } from "react-native-paper";
+import { Appbar, Icon, useTheme } from "react-native-paper";
 
 export default function RootLayout() {
   const { colors } = useTheme(); 
@@ -10,9 +11,13 @@ export default function RootLayout() {
         name="index"
         options={{ 
           title: 'UPick',
+          headerTitle: (props) => <CustomHeaderTitle title='UPick'/> ,
           headerTintColor: colors.inversePrimary,
           headerStyle: { backgroundColor: colors.primary} 
-          }}/>
+          }}
+      >
+          
+          </Stack.Screen>
     </Stack>
   );
 }
